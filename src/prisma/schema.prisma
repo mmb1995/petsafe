@@ -1,0 +1,70 @@
+// schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider          = "postgresql"
+  url               = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  directUrl         = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+  shadowDatabaseUrl = env("POSTGRES_URL_NON_POOLING") // used for migrations
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  wallet    String   @unique
+  createdAt DateTime @default(now()) @map(name: "created_at")
+  updatedAt DateTime @updatedAt @map(name: "updated_at")
+  pets      Pet[]
+}
+
+model Pet {
+  id            Int        @id @default(autoincrement())
+  name          String
+  age           Int
+  weight        Int
+  breed         String[]
+  description   String
+  contractPetId String?    @unique
+  owner         User       @relation(fields: [ownerId], references: [id])
+  ownerId       Int
+  sex           Sex
+  type          PetType
+  images        Image[]
+  events        PetEvent[]
+}
+
+model Image {
+  height Int
+  width  Int
+  url    String @unique
+  Pet    Pet?   @relation(fields: [petId], references: [id])
+  petId  Int?
+}
+
+model PetEvent {
+  id     Int      @id @default(autoincrement())
+  Pet    Pet      @relation(fields: [petId], references: [id])
+  petId  Int
+  status Status
+  date   DateTime
+}
+
+// Used to identify the current status of the pet
+enum Status {
+  LOST
+  FOUND
+}
+
+// Used to identify the biological sex of the pet
+enum Sex {
+  MALE
+  FEMALE
+}
+
+// Used to identify the type of pet
+enum PetType {
+  CAT
+  DOG
+}
